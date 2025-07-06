@@ -110,53 +110,54 @@ int main(void)
   while (1)
     {
 
-        HAL_ResumeTick();  // Ponovno uključi SysTick
-        HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_SYSCLK, RCC_MCODIV_1);// Uključi izlaz takta na MCO (PA8)
-        HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-        // Provjeri je li tipka (PB8) pritisnuta
-            if(HAL_GPIO_ReadPin(GPIOB, TEST_Pin) == GPIO_PIN_SET)
-            {
+	  HAL_ResumeTick();  // Ponovno uključi SysTick
+	         HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_SYSCLK, RCC_MCODIV_8);// Uključi izlaz takta na MCO (PA8)
+	         HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+	         // Provjeri je li tipka (PB8) pritisnuta
+	             if(HAL_GPIO_ReadPin(GPIOB, TEST_Pin) == GPIO_PIN_SET)
+	             {
 
-        uint32_t startTime = HAL_GetTick(); // Dohvati trenutno vrijeme (vrijeme početka)
+	         uint32_t startTime = HAL_GetTick(); // Dohvati trenutno vrijeme (vrijeme početka)
 
-        while (HAL_GetTick() - startTime < 150) // Radi ADC čitanje 150 ms
-        {
-            HAL_ADC_Start(&hadc1); // Pokreni ADC
-            HAL_ADC_PollForConversion(&hadc1, 20); // Pričekaj završetak konverzije (timeout 20 ms)
-            value = HAL_ADC_GetValue(&hadc1); // Dohvati izmjerenu vrijednost
+	         while (HAL_GetTick() - startTime < 150) // Radi ADC čitanje 150 ms
+	         {
+	             HAL_ADC_Start(&hadc1); // Pokreni ADC
+	             HAL_ADC_PollForConversion(&hadc1, 20); // Pričekaj završetak konverzije (timeout 20 ms)
+	             value = HAL_ADC_GetValue(&hadc1); // Dohvati izmjerenu vrijednost
 
-            if (value <= 3500)
-            {
-                HAL_GPIO_WritePin(GPIOA, RED_Pin, GPIO_PIN_RESET);// Ugasi izlaz na preba crvenoj LED lampici
+	             if (value <= 3500)
+	             {
+	                 HAL_GPIO_WritePin(GPIOA, RED_Pin, GPIO_PIN_RESET);// Ugasi izlaz na preba crvenoj LED lampici
 
-                __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);// PWM isključi (vrijednost usporedbe = 0)
-            }
-            else
-            {
-                HAL_GPIO_WritePin(GPIOA, RED_Pin, GPIO_PIN_SET);// Uključi izlaz na za crvenu LED lampicu
-                __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 1000);// PWM uključi s usporednom vrijednosti 1000 (≈50% DT)
-            }
+	                 __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);// PWM isključi (vrijednost usporedbe = 0)
+	             }
+	             else
+	             {
+	                 HAL_GPIO_WritePin(GPIOA, RED_Pin, GPIO_PIN_SET);// Uključi izlaz na za crvenu LED lampicu
+	                 __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 1000);// PWM uključi s usporednom vrijednosti 1000 (≈50% DT)
+	             }
 
-            HAL_Delay(10); // Kratka pauza (100 ms) između uzorkovanja
-        }
+	             HAL_Delay(10); // Kratka pauza (100 ms) između uzorkovanja
+	         }
 
-        HAL_GPIO_WritePin(GPIOA, RED_Pin, GPIO_PIN_RESET);
-        // Nakon petlje ugasi crvenu LED-icu
-        HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_NOCLOCK, RCC_MCODIV_1);
-        // Isključi MCO izlaz
-        HAL_ADC_Stop(&hadc1);
+	         HAL_GPIO_WritePin(GPIOA, RED_Pin, GPIO_PIN_RESET);
+	         // Nakon petlje ugasi crvenu LED-icu
+	         HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_NOCLOCK, RCC_MCODIV_8);
+	         // Isključi MCO izlaz
+	         HAL_ADC_Stop(&hadc1);
 
-        HAL_Delay(100); // Kratka pauza radi stabilnosti
-        HAL_SuspendTick();
-         // Zaustavi SysTick timer (radi uštede energije)
-        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0); // PWM OFF
-        HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
-        HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFI); // Uđi u STOP način rada i čekaj prekid
-        } else //ako je tipkalo pritisnuto izvedi provjeru zujalice i LED-ice
-         {
-          HAL_GPIO_WritePin(GPIOA, RED_Pin, GPIO_PIN_SET);
-           __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 1000);
-            }
+	         HAL_Delay(100); // Kratka pauza radi stabilnosti
+	         HAL_SuspendTick();
+	          // Zaustavi SysTick timer (radi uštede energije)
+	         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0); // PWM OFF
+	         HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
+	         HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFI); // Uđi u STOP način rada i čekaj prekid
+	         } else //ako je tipkalo pritisnuto izvedi provjeru zujalice i LED-ice
+	          {
+	           HAL_GPIO_WritePin(GPIOA, RED_Pin, GPIO_PIN_SET);
+	            __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 1000);
+	             }
+
     }
     /* USER CODE END WHILE */
 
@@ -186,7 +187,12 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV4;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.LSIState = RCC_LSI_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
+  RCC_OscInitStruct.PLL.PLLN = 8;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -204,7 +210,8 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_SYSCLK, RCC_MCODIV_1);
+  __HAL_RCC_PLLCLKOUT_ENABLE(RCC_PLLRCLK);
+  HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_PLLCLK, RCC_MCODIV_4);
 }
 
 /**
@@ -447,7 +454,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = GPIO_PIN_8;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.Alternate = GPIO_AF0_MCO;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
